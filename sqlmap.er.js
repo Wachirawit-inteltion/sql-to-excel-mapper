@@ -112,11 +112,30 @@
       return fileIndex === null || fileIndex === undefined || g.fileIndex === fileIndex;
     });
 
+    /* subquery / CTE ที่ข้างในอ่านจากตารางเดียวแบบไม่มี JOIN (แค่ filter/aggregate)
+       ถือเป็นตารางนั้นตรงๆ ในผังนี้ — ไม่งั้นจะได้กล่องลอย 2 กล่องที่ไม่เชื่อมกัน:
+       กล่อง "นามแฝง" (เช่น QA) ที่รับเส้น JOIN จริง กับกล่องชื่อตารางจริงที่ไม่มีเส้นเลย */
+    var collapse = {};
+    groups.forEach(function (g) {
+      if (!g.isCte) return;
+      var rows = g.rows || [];
+      if (rows.length === 1 && rows[0].tableA && !rows[0].tableB) {
+        var subName = entityName(g.name), baseName = entityName(rows[0].tableA);
+        if (subName && baseName && subName !== baseName) collapse[subName] = baseName;
+      }
+    });
+    function resolveCollapse(n) {
+      var seen = {}, cur = n;
+      while (collapse[cur] && !seen[cur]) { seen[cur] = 1; cur = collapse[cur]; }
+      return cur;
+    }
+
     function ent(label) {
-      var n = entityName(label);
-      if (!n) return null;
+      var raw = entityName(label);
+      if (!raw) return null;
+      var n = resolveCollapse(raw);
       if (!ents[n]) { ents[n] = newEnt(n); order.push(n); }
-      if (/^Subsquery\s*:/i.test(String(label || ''))) ents[n].kind = 'sub';
+      if (n === raw && /^Subsquery\s*:/i.test(String(label || ''))) ents[n].kind = 'sub';
       return ents[n];
     }
 
@@ -138,8 +157,8 @@
     /* alias -> entity จาก Tables relationship */
     groups.forEach(function (g) {
       (g.rows || []).forEach(function (r) {
-        if (r.aliasA && r.tableA) alias[up(r.aliasA)] = entityName(r.tableA);
-        if (r.aliasB && r.tableB) alias[up(r.aliasB)] = entityName(r.tableB);
+        if (r.aliasA && r.tableA) alias[up(r.aliasA)] = resolveCollapse(entityName(r.tableA));
+        if (r.aliasB && r.tableB) alias[up(r.aliasB)] = resolveCollapse(entityName(r.tableB));
         if (r.tableA) ent(r.tableA);
         if (r.tableB) ent(r.tableB);
       });
@@ -251,7 +270,7 @@
         if (mainG) {
           (mainG.rows || []).forEach(function (r) {
             [r.tableA, r.tableB].forEach(function (t) {
-              var n = entityName(t);
+              var n = resolveCollapse(entityName(t));
               if (n && n !== te.name && feeders.indexOf(n) === -1) feeders.push(n);
             });
           });
