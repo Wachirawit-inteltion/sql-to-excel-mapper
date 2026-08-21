@@ -443,13 +443,13 @@ body.locked .lockscreen{display:flex}
   font-family:var(--mono);font-size:15px;margin:0 0 6px;letter-spacing:-.01em;color:var(--ink)
 }
 .lockcard p{margin:0 0 18px;color:var(--muted);font-size:12.5px;line-height:1.5}
-.lockcard input[type=password]{
+.lockcard input[type=password],.lockcard input[type=text]{
   width:100%;border:1px solid var(--rule);background:#11161C;color:var(--ink);
   border-radius:var(--radius-sm);padding:11px 12px;font-family:var(--mono);font-size:13px;
-  text-align:center;letter-spacing:.08em
+  text-align:center;letter-spacing:.08em;margin-bottom:9px
 }
-.lockcard input[type=password]:focus{outline:2px solid var(--green);outline-offset:-1px;border-color:var(--green)}
-.lockcard .btn{width:100%;margin-top:12px;padding:10px 16px}
+.lockcard input[type=password]:focus,.lockcard input[type=text]:focus{outline:2px solid var(--green);outline-offset:-1px;border-color:var(--green)}
+.lockcard .btn{width:100%;margin-top:3px;padding:10px 16px}
 .lockcard .lockerr{
   margin-top:12px;color:var(--rose);background:var(--rose-wash);border:1px solid #4A2F2E;
   border-radius:var(--radius-sm);padding:8px 10px;font-size:12px
@@ -461,3 +461,55 @@ body.locked .lockscreen{display:flex}
   30%,50%,70%{transform:translateX(-4px)}
   40%,60%{transform:translateX(4px)}
 }
+
+/* ---------- top auth bar ---------- */
+.authbar{
+  display:none;position:fixed;top:14px;right:18px;z-index:40;align-items:center;gap:8px;
+  background:var(--card);border:1px solid var(--rule);border-radius:999px;
+  padding:6px 8px 6px 14px;box-shadow:var(--shadow-md)
+}
+.authbar:not([hidden]){display:flex}
+.authwho{font-size:12px;color:var(--muted);font-family:var(--mono)}
+.ghost.small,.btn.small{padding:6px 12px;font-size:12px}
+body.locked .authbar{display:none}
+
+/* ---------- config modal ---------- */
+.configmodal{
+  display:none;position:fixed;inset:0;z-index:90;background:rgba(10,13,16,.72);
+  align-items:center;justify-content:center;padding:24px
+}
+.configmodal:not([hidden]){display:flex}
+.configpanel{
+  width:100%;max-width:560px;max-height:88vh;overflow:auto;background:var(--card);
+  border:1px solid var(--rule);border-radius:var(--radius);box-shadow:var(--shadow-lg);
+  border-top:3px solid var(--plum-soft);padding:22px 24px
+}
+.confighead{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.confighead h2{font-family:var(--mono);font-size:15px;margin:0;letter-spacing:-.01em}
+.configsection{margin-bottom:22px}
+.configsection h3{
+  font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--muted);margin:0 0 10px
+}
+.configform{display:flex;flex-wrap:wrap;gap:8px}
+.configform input,.configform select{
+  border:1px solid var(--rule);background:#11161C;color:var(--ink);border-radius:var(--radius-sm);
+  padding:8px 10px;font-size:12.5px;font-family:var(--sans)
+}
+.configform input{flex:1 1 150px}
+.configform select{flex:0 0 auto}
+.configform .btn{flex:0 0 auto}
+#userListWrap table{width:100%;border-collapse:collapse;font-size:12.5px}
+#userListWrap th{
+  text-align:left;font-family:var(--mono);font-size:10px;letter-spacing:.06em;text-transform:uppercase;
+  color:var(--muted);padding:6px 8px;border-bottom:1px solid var(--rule)
+}
+#userListWrap td{padding:8px;border-bottom:1px solid var(--rule-soft);vertical-align:middle}
+.userActions{display:flex;gap:6px;justify-content:flex-end;white-space:nowrap}
+.tag.role-admin{background:var(--green-wash);color:var(--green);border-color:var(--green-deep)}
+.tag.role-normal{background:var(--card-2);color:var(--muted)}
+.icon.danger:hover{color:#E4705A;background:rgba(228,112,90,.12)}
+.muted{color:var(--muted)}
+p.small,span.small{font-size:12px}
+
+

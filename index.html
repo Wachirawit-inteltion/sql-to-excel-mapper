@@ -11,16 +11,56 @@
 <div class="lockscreen">
   <div class="lockcard">
     <div class="licon">🔒</div>
-    <h2>ต้องใส่รหัสผ่าน</h2>
-    <p>กรอกรหัสผ่านเพื่อเข้าใช้งานเครื่องมือนี้</p>
+    <h2>เข้าสู่ระบบ</h2>
+    <p>กรอกชื่อผู้ใช้และรหัสผ่านเพื่อเข้าใช้งานเครื่องมือนี้</p>
     <form id="lockForm" autocomplete="off">
+      <input id="lockUsername" type="text" placeholder="ชื่อผู้ใช้" autocomplete="username">
       <input id="lockPassword" type="password" placeholder="รหัสผ่าน" autocomplete="current-password">
       <button type="submit" class="btn">เข้าสู่ระบบ</button>
       <p id="lockError" class="lockerr" hidden></p>
     </form>
   </div>
 </div>
-<script src="auth-gate.js"></script>
+
+<div id="authBar" class="authbar" hidden>
+  <button id="btnConfig" class="ghost small" hidden>⚙ ตั้งค่าสมาชิก</button>
+  <span id="authWho" class="authwho"></span>
+  <button id="btnLogout" class="ghost small">ออกจากระบบ</button>
+</div>
+
+<div id="configModal" class="configmodal" hidden>
+  <div class="configpanel">
+    <div class="confighead">
+      <h2>ตั้งค่าสมาชิก</h2>
+      <button id="btnConfigClose" class="icon" aria-label="ปิด">✕</button>
+    </div>
+
+    <div id="configBody">
+      <section class="configsection">
+        <h3>สมาชิกทั้งหมด</h3>
+        <div id="userListWrap" class="scroll"><p class="muted small">กำลังโหลด...</p></div>
+      </section>
+
+      <section class="configsection">
+        <h3>เพิ่มสมาชิกใหม่</h3>
+        <form id="addUserForm" class="configform" autocomplete="off">
+          <input id="newUsername" type="text" placeholder="ชื่อผู้ใช้" autocomplete="off" required>
+          <input id="newDisplayName" type="text" placeholder="ชื่อที่แสดง (ไม่บังคับ)" autocomplete="off">
+          <input id="newPassword" type="password" placeholder="รหัสผ่าน" autocomplete="new-password" required>
+          <select id="newRole">
+            <option value="normal">normal</option>
+            <option value="admin">admin</option>
+          </select>
+          <button type="submit" class="btn">เพิ่มสมาชิก</button>
+        </form>
+        <p id="addUserMsg" class="lockerr" hidden></p>
+      </section>
+    </div>
+  </div>
+</div>
+
+<script src="auth.js"></script>
+<script src="admin-config.js"></script>
 
 <div class="wrap">
 

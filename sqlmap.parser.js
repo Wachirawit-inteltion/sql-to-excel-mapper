@@ -214,14 +214,6 @@
       return parseSelectItem(part.text, abs, lineOf, hints);
     });
 
-    /* the set-operator keyword (if any) can sit anywhere after FROM — not
-       necessarily as the very next clause, since WHERE / GROUP BY / HAVING /
-       ORDER BY may come first in this branch — so look for it explicitly
-       instead of assuming "tail" already is it */
-    var setOpKw = fromKw
-      ? findTop(sqlText, mask, [/UNION\s+ALL\b/iy, /UNION\b/iy, /MINUS\b/iy, /INTERSECT\b/iy], fromKw.end)
-      : null;
-
     var block = {
       name: name || null,
       sql: tidy(sqlText),
@@ -231,30 +223,25 @@
       groupBy: groupText,
       setOp: null,
       branches: null,
-      hasSetOp: !!setOpKw
+      hasSetOp: !!(tail && /^(UNION|MINUS|INTERSECT)/i.test(tail.text))
     };
 
     /* UNION / MINUS / INTERSECT: keep every branch, not just the first one */
     if (block.hasSetOp) {
-      var setKw = setOpKw;
+      var setKw = findTop(sqlText, mask, [/UNION\s+ALL\b/iy, /UNION\b/iy, /MINUS\b/iy, /INTERSECT\b/iy], listStart);
       if (setKw) {
         block.setOp = squash(setKw.text).toUpperCase();
         var restBlock = parseBlock(sqlText.slice(setKw.end), base + setKw.end, lineOf, hints, name);
         var firstBranch = {
           select: items, sources: block.sources, where: block.where,
-          groupBy: groupText, sql: tidy(sqlText.slice(0, setKw.index)), opBefore: null
+          groupBy: groupText, sql: tidy(sqlText.slice(0, setKw.index))
         };
         block.branches = [firstBranch];
         if (restBlock) {
-          /* each branch remembers the actual operator that precedes it, so a
-             CTE mixing UNION ALL / MINUS / INTERSECT across 3+ branches keeps
-             the right operator per transition instead of reusing the first */
-          if (restBlock.branches) {
-            restBlock.branches[0].opBefore = block.setOp;
-            block.branches = block.branches.concat(restBlock.branches);
-          } else block.branches.push({
+          if (restBlock.branches) block.branches = block.branches.concat(restBlock.branches);
+          else block.branches.push({
             select: restBlock.select, sources: restBlock.sources, where: restBlock.where,
-            groupBy: restBlock.groupBy, sql: restBlock.sql, opBefore: block.setOp
+            groupBy: restBlock.groupBy, sql: restBlock.sql
           });
         }
       }
@@ -845,7 +832,7 @@
               no: rows.length + 1,
               tableA: labelOf(prev, cteMap), aliasA: prev.alias || prev.table || '',
               tableB: labelOf(here, cteMap), aliasB: here.alias || here.table || '',
-              joinType: br.opBefore || b0.setOp || 'UNION', condition: '',
+              joinType: b0.setOp || 'UNION', condition: '',
               condWhere: whereOf(br), remark: aggOf(br)
             });
             if (br.sources.length > 1) {
@@ -856,12 +843,7 @@
             }
             return;
           }
-          /* skip a trivial single-table first branch (nothing to join) — but
-             only when it really has nothing to say; a WHERE/GROUP BY on that
-             branch would otherwise vanish since the union row that follows
-             only carries the *next* branch's own condition, never this one's */
-          if (bi === 0 && sub.length === 1 && !sub[0].tableB &&
-            !(br.where && br.where.length) && !br.groupBy) return;
+          if (bi === 0 && sub.length === 1 && !sub[0].tableB) return;
           sub.forEach(function (r, ri) {
             r.no = rows.length + 1;
             r.condWhere = ri === 0 ? whereOf(br) : '';
